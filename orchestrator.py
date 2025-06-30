@@ -40,5 +40,23 @@ def list_files():
 def list_peers():
     return jsonify(peers)
 
+@app.route('/disconnect', methods=['POST'])
+def disconnect():
+    data = request.get_json()
+    peer_id = data.get('peer_id')
+    if not peer_id or peer_id not in peers:
+        return jsonify({'error': 'peer_id inválido'}), 400
+
+    # Remover arquivos indexados
+    for f in peers[peer_id]['files']:
+        file_index[f].discard(peer_id)
+        if not file_index[f]:
+            del file_index[f]
+
+    # Remover peer
+    del peers[peer_id]
+    return jsonify({'status': 'disconnected'})
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
